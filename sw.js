@@ -1,6 +1,6 @@
 /* Service worker — MedTech Quick Reference
    ใช้งานออฟไลน์ได้หลังเปิดเว็บครั้งแรก · เมื่ออัปเดตไฟล์บน GitHub ให้เปลี่ยนเลข VERSION เพื่อบังคับโหลดใหม่ */
-const VERSION = 'mtq-v2.0.0';
+const VERSION = 'mtq-v2.1.0';
 const CORE = ['./', './index.html', './atlas.js', './flow.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

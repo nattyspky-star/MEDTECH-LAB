@@ -1302,6 +1302,121 @@ add({ id:'charcot', en:'Charcot–Leyden crystals', th:'ผลึก Charcot–L
     [[40,70],[160,150]].forEach(([x,y])=>s+=C(x,y,14,'#E4E2D6','#6F7368',0.9)+scatter(x,y,10,10,24,(a,b)=>C(a,b,1.2,'#B99B52')));
     return s; } });
 })();
+/* ---------- กลุ่ม: เซลล์มะเร็งเม็ดเลือด & Cytochemistry ---------- */
+(function(){
+const CORE = window.__ATLAS_CORE;
+Object.assign(CORE.STAINS, {
+  mpo: { bg:'#EEEDE6', label:'Cytochemistry: MPO / SBB' },
+  nse: { bg:'#EEEAE4', label:'Cytochemistry: NSE (α-naphthyl butyrate)' },
+  pas: { bg:'#F1ECEC', label:'Cytochemistry: PAS' },
+});
+const {C,E,P,L,G,T,blob,scatter,polar,smooth,grad,rbcBg,rbc,lobes,granules,placer,r,ri,TAU,shade} = window.__ATLAS_H;
+const add = o => CORE.ITEMS.push(Object.assign({g:'leuk', stain:'wright', um:4.5}, o));
+const RBC_R = 17;
+const cell = (cx,cy,rad,fill,irr,st) => P(blob(cx,cy,rad,rad*0.96,irr==null?0.04:irr,14,0), fill, st||'#9C8FB8', 0.7);
+const chrom = (cx,cy,rx,ry,n,col) => scatter(cx,cy,rx,ry,n,(x,y)=>C(x,y,r(0.4,0.9),col||'#4E3585',null,0,'opacity=".55"'));
+const nucleoli = (pts) => pts.map(p=>C(p[0],p[1],p[2]||3,'#B8C4E8','#8E9CD0',0.5)).join('');
+function blastCells(n, R, fn){ const sp = placer(n, R*1.05, [], 60, 3000); return rbcBg(8, RBC_R, sp.map(p=>[p[0],p[1],p[2]+2])) + sp.map((p,i)=>fn(p[0],p[1],i)).join(''); }
+
+add({ id:'l_lymphoblast', en:'Lymphoblasts (ALL)', th:'Lymphoblast (มะเร็งเม็ดเลือดขาวเฉียบพลันชนิดลิมฟอยด์)', size:'10–18 µm (1–2 เท่าของ small lymphocyte)', crit:true,
+  key:['N:C ratio สูงมาก ไซโทพลาซึมน้อย สีฟ้า ไม่มีแกรนูล','โครมาทินละเอียดกว่า lymphocyte ปกติ nucleoli ไม่ชัด/เล็ก (L1) หรือเห็นชัดในเซลล์ใหญ่ (L2)','ไม่มี Auer rod; MPO/SBB ลบ; PAS อาจบวกเป็นก้อน'],
+  diff:'Myeloblast (มี Auer rod, MPO+) · Reactive lymphocyte · Hematogone (B precursor ปกติ) · Small lymphocyte',
+  sig:'⚠ ALL — ยืนยันด้วย flow cytometry (B: CD19/cCD79a/CD10, T: cCD3/CD7) + TdT; พบบ่อยในเด็ก 2–5 ปี',
+  draw(){ return blastCells(4, 26, (x,y,i)=>{ const R=r(22,27); return cell(x,y,R,'#9EBCE3','',0.03)+P(blob(x+1,y,R-4,R-5,0.07,11),'#5B3F95')+chrom(x+1,y,R-8,R-8,50,'#3E2670')+(i%2?nucleoli([[x+4,y-3,2.2]]):''); }); } });
+
+add({ id:'l_apl', en:'Abnormal promyelocytes & faggot cell (APL, AML-M3)', th:'Abnormal promyelocyte / Faggot cell (APL)', size:'15–25 µm', crit:true,
+  key:['ไซโทพลาซึมเต็มไปด้วยแกรนูลหยาบสีแดงม่วง (hypergranular) บดบังขอบนิวเคลียส','นิวเคลียส 2 พู/รูปผีเสื้อ (bilobed, butterfly)','Faggot cell = มี Auer rods จำนวนมากเรียงเป็นมัดคล้ายฟืน','MPO/SBB บวกเข้มมาก (++++); HLA-DR−, CD34−'],
+  diff:'Promyelocyte ปกติ (นิวเคลียสกลม มี Golgi zone, ไม่มี Auer rods) · Microgranular variant (M3v) แกรนูลมองไม่เห็นในกล้องธรรมดา',
+  sig:'⚠ ภาวะฉุกเฉินทางโลหิตวิทยา — เสี่ยง DIC/เลือดออกในสมอง แจ้งแพทย์ทันที, ตรวจ PT/APTT/fibrinogen, ยืนยัน PML::RARA t(15;17) และเริ่ม ATRA ได้ทันทีที่สงสัย',
+  draw(){ return blastCells(3, 30, (x,y,i)=>{ let s=cell(x,y,29,'#E8C3D2','',0.05)+P(`M${x-14} ${y-12}C${x-2} ${y-20} ${x-2} ${y-2} ${x-4} ${y}C${x-2} ${y+2} ${x-2} ${y+20} ${x-14} ${y+12}C${x-24} ${y+6} ${x-24} ${y-6} ${x-14} ${y-12}Z`,'#6E4AA6')+P(`M${x+2} ${y-12}C${x+16} ${y-18} ${x+22} ${y-2} ${x+14} ${y+6}C${x+10} ${y+12} ${x+2} ${y+10} ${x-2} ${y}Z`,'#6E4AA6');
+      s+=granules(x,y,26,26,95,0.8,1.5,'#8E1F5E','.9');
+      if(i===0){ for(let k=0;k<7;k++){ const a=0.5+k*0.08; s+=L(x+8+Math.cos(a)*2,y+8+k*1.4,x+8+Math.cos(a)*16,y-6+k*1.4,'#C2185B',1.1); } }
+      else s+=L(x+10,y+10,x+20,y+2,'#C2185B',1.4);
+      return s; }); } });
+
+add({ id:'l_mono', en:'Monoblasts & promonocytes (AML-M5)', th:'Monoblast / Promonocyte (AML-M4/M5)', size:'15–25 µm', crit:true,
+  key:['Monoblast: เซลล์ใหญ่ ไซโทพลาซึมมาก สีเทาอมฟ้า อาจมี pseudopod; นิวเคลียสกลม โครมาทินละเอียดเป็นลายลูกไม้ มี nucleolus ใหญ่ 1–2 อัน','Promonocyte: นิวเคลียสเริ่มพับ/บิดเป็นรอยย่น (convoluted) ไซโทพลาซึมมีแกรนูลฝุ่นละเอียด + vacuole','Auer rod พบได้น้อย; NSE บวกและถูกยับยั้งด้วย NaF'],
+  diff:'Myeloblast (ไซโทพลาซึมน้อยกว่า, MPO+ เข้ม) · Monocyte ปกติ · Reactive lymphocyte',
+  sig:'⚠ AML monocytic — มักมีเหงือกบวม (gingival hyperplasia), ผื่นผิวหนัง, CNS involvement; KMT2A rearrangement t(9;11); ระวัง DIC/leukostasis',
+  draw(){ return blastCells(3, 32, (x,y,i)=>{ let s=P(blob(x,y,32,30,0.12,12),'#BFC4DB','#9D98B8',0.7)+granules(x,y,28,26,30,0.4,0.7,'#B195B8','.6')+C(x+18,y+12,3,'#EEF0F6','#B7B3CD',0.5);
+      if(i===1){ s+=P(smooth([[x-16,y-6],[x-8,y-18],[x+8,y-16],[x+14,y-4],[x+6,y+2],[x+10,y+12],[x-4,y+14],[x-14,y+8],[x-6,y+2]],true),'#6A51A0')+chrom(x-2,y-2,12,10,30,'#8B76BF'); }
+      else { s+=C(x-3,y-2,17,'#6A51A0')+chrom(x-3,y-2,14,14,45,'#8B76BF')+nucleoli([[x-6,y-6,4],[x+4,y+4,2.6]]); }
+      return s; }); } });
+
+add({ id:'l_megakb', en:'Megakaryoblasts (AML-M7)', th:'Megakaryoblast (AML-M7)', size:'10–30 µm (ขนาดหลากหลาย)', crit:true,
+  key:['ไซโทพลาซึมสีน้ำเงินเข้ม ไม่มีแกรนูล มีตุ่ม/ติ่งยื่นออกคล้ายเกล็ดเลือด (cytoplasmic blebs/budding)','นิวเคลียสกลม โครมาทินหนาแน่นปานกลาง อาจเห็น nucleoli','อาจพบเกล็ดเลือดขนาดใหญ่/ชิ้นส่วน megakaryocyte ร่วม'],
+  diff:'Lymphoblast (ไม่มีติ่ง) · Myeloblast · ยืนยันด้วย CD41/CD61 (MPO ลบ)',
+  sig:'⚠ AML-M7 — มัก BM fibrosis (dry tap) ต้องใช้ biopsy; พบใน Down syndrome และทารก t(1;22)',
+  draw(){ return blastCells(3, 28, (x,y,i)=>{ let s=''; for(let k=0;k<5;k++){ const a=r(0,TAU); s+=C(x+Math.cos(a)*24,y+Math.sin(a)*24,r(4,6),'#6C8AC6','#4A68A8',0.5); }
+      return s+cell(x,y,24,'#5F7FC0','',0.06,'#4A68A8')+C(x-2,y,15,'#4B2F84')+chrom(x-2,y,12,12,30,'#35206A')+nucleoli([[x+2,y-4,2.4]]); }); } });
+
+add({ id:'l_burkitt', en:'Burkitt cells (mature B-ALL / FAB L3)', th:'Burkitt cell (FAB L3)', size:'10–25 µm', crit:true,
+  key:['ไซโทพลาซึมสีน้ำเงินเข้มมาก (deeply basophilic)','มี vacuole ใสจำนวนมาก (ไขมัน) ทั้งในไซโทพลาซึมและทับนิวเคลียส','นิวเคลียสกลม โครมาทินละเอียด nucleoli 2–5 อัน'],
+  diff:'Lymphoblast L1/L2 (ไม่มี vacuole เด่น, TdT+) · Plasmablast',
+  sig:'⚠ Burkitt lymphoma/leukemia — sIg+ CD10+ TdT−, MYC t(8;14); เติบโตเร็วมาก เสี่ยง tumor lysis syndrome',
+  draw(){ return blastCells(4, 25, (x,y)=>{ const R=r(22,26); return cell(x,y,R,'#2E4F9E','',0.04,'#1E3A80')+P(blob(x,y,R-6,R-7,0.06,10),'#4D2F8A')+chrom(x,y,R-10,R-10,30,'#34206A')+nucleoli([[x-4,y-4,2.4],[x+5,y+3,2]])+scatter(x,y,R-2,R-2,10,(a,b)=>C(a,b,r(1.4,2.6),'#EEF2FA','#B8C6E4',0.4)); }); } });
+
+add({ id:'l_cll', en:'CLL cells & smudge cells', th:'เซลล์ CLL และ smudge cell', size:'7–10 µm (small mature lymphocyte)',
+  key:['ลิมโฟไซต์ขนาดเล็กจำนวนมาก ดูเหมือนเซลล์ปกติ','โครมาทินจับเป็นก้อนเป็นแผ่น ๆ คล้ายลูกฟุตบอล (soccer-ball / clumped chromatin)','พบ smudge cell จำนวนมาก','Prolymphocyte (มี nucleolus ชัด) < 55%'],
+  diff:'Reactive lymphocytosis (เซลล์หลากหลาย) · Mantle cell (นิวเคลียสหยัก) · Hairy cell',
+  sig:'CLL — ยืนยันด้วย flow (CD5+ CD23+ CD200+ FMC7− sIg dim, Matutes ≥ 4) และ clonal B ≥ 5 ×10⁹/L',
+  draw(){ let s=rbcBg(6,RBC_R,[[100,100,70]]); placer(9,19,[],66,3000).forEach((p,i)=>{ const x=p[0],y=p[1];
+      if(i%4===3){ s+=P(blob(x,y,16,13,0.35,10,30),'#9A82C2','none',0,'opacity=".7"'); for(let k=0;k<5;k++){ const a=r(0,TAU); s+=L(x,y,x+Math.cos(a)*18,y+Math.sin(a)*18,'#8A70B6',1,'opacity=".6"'); } }
+      else { s+=C(x,y,17,'#AFCBEA','#8FB0D6',0.5)+C(x+1,y,14.5,'#3E2468'); for(let k=0;k<7;k++){ const a=k/7*TAU; s+=P(blob(x+1+Math.cos(a)*7,y+Math.sin(a)*7,3.4,2.8,0.2,6),'#28144C'); } s+=C(x+1,y,3,'#28144C'); } });
+    return s; } });
+
+add({ id:'l_hairy', en:'Hairy cells (Hairy cell leukemia)', th:'Hairy cell', size:'12–20 µm',
+  key:['ขอบไซโทพลาซึมมีขนหรือติ่งบาง ๆ รอบเซลล์ (circumferential hairy projections)','ไซโทพลาซึมสีฟ้าเทาอ่อนปริมาณปานกลาง','นิวเคลียสรูปไข่/รูปถั่ว โครมาทินละเอียด ไม่มี nucleolus เด่น'],
+  diff:'Splenic marginal zone lymphoma (villous lymphocyte — ขนอยู่ที่ขั้วเดียว) · Monocyte',
+  sig:'Pancytopenia + monocytopenia + ม้ามโต; flow: CD11c/CD25/CD103/CD123+, BRAF V600E; TRAP+; มัก dry tap',
+  draw(){ return blastCells(3, 30, (x,y)=>{ let s=''; for(let k=0;k<28;k++){ const a=k/28*TAU+r(0,.1); const r0=22; s+=P(`M${x+Math.cos(a)*r0} ${y+Math.sin(a)*r0}q${Math.cos(a+0.6)*4} ${Math.sin(a+0.6)*4} ${Math.cos(a)*r(6,10)} ${Math.sin(a)*r(6,10)}`,'none','#9DB6DA',1.3); }
+      return s+cell(x,y,23,'#C4D4EC','',0.05,'#9DB6DA')+E(x-2,y+1,12,9,r(0,180),'#5C4596')+chrom(x-2,y+1,9,7,24,'#7E69B4'); }); } });
+
+add({ id:'l_cml', en:'CML blood picture', th:'ภาพเลือด CML', size:'—',
+  key:['WBC สูงมาก เห็นเซลล์ granulocyte ทุกระยะ (myeloblast → segmented) “myelocyte bulge”','Basophil และ eosinophil เพิ่มขึ้น (basophilia สำคัญ)','Blast < 10% ในระยะเรื้อรัง; เกล็ดเลือดปกติ/สูง'],
+  diff:'Leukemoid reaction (มี toxic granulation, ไม่มี basophilia, LAP สูง) · CMML (monocytosis) · PMF',
+  sig:'ยืนยันด้วย BCR::ABL1 / Ph chromosome t(9;22); LAP score ต่ำ; ติดตามการรักษาด้วย BCR::ABL1 %IS',
+  draw(){ let s=rbcBg(4,RBC_R,[[100,100,90]]);
+    const myel=(x,y)=>cell(x,y,24,'#E6CBD6')+granules(x,y,21,21,40,0.6,1,'#9C5A8C','.8')+C(x-6,y,11,'#5A3B90');
+    const meta=(x,y)=>cell(x,y,22,'#EDD3DC')+granules(x,y,19,19,40,0.5,0.9,'#B97C9E','.8')+P(`M${x-10} ${y-8}C${x+6} ${y-14} ${x+10} ${y} ${x-2} ${y+2}C${x+8} ${y+6} ${x+4} ${y+14} ${x-10} ${y+8}C${x-16} ${y} ${x-16} ${y} ${x-10} ${y-8}Z`,'#4B2A7B');
+    const seg=(x,y)=>cell(x,y,21,'#EDD3DC')+granules(x,y,18,18,40,0.5,0.9,'#B97C9E','.8')+lobes([[x-8,y-2,5.4],[x+2,y-9,5.2],[x+9,y+3,5.4]]);
+    const baso=(x,y)=>cell(x,y,19,'#E4D4E8')+granules(x,y,16,16,26,1.6,2.6,'#2B1045');
+    const eos=(x,y)=>cell(x,y,21,'#F3DCCB')+granules(x,y,18,18,55,1.5,1.9,'#E0643A')+lobes([[x-7,y,6.2],[x+7,y,6.2]]);
+    const blast=(x,y)=>cell(x,y,22,'#8DB0DD','',0.03)+C(x-2,y,16,'#7253A6')+nucleoli([[x-4,y-4,2.4],[x+3,y+3,2]]);
+    const fns=[myel,meta,seg,baso,myel,seg,eos,myel,meta,blast,seg,myel];
+    placer(12,24,[],74,4000).forEach((p,i)=>s+=fns[i%fns.length](p[0],p[1]));
+    return s; } });
+
+add({ id:'l_myeloma', en:'Myeloma plasma cells (bone marrow)', th:'Plasma cell ในไขกระดูก (Multiple myeloma)', size:'10–20 µm',
+  key:['plasma cell จำนวนมากเป็นกลุ่ม (clonal plasma cell ≥ 10% ในไขกระดูก)','นิวเคลียสอยู่ชิดขอบ, perinuclear hof, ไซโทพลาซึมน้ำเงินเข้ม','อาจพบ binucleate, nucleolus ชัด, Russell bodies / Mott cell, flame cell','PB: rouleaux ชัด'],
+  diff:'Reactive plasmacytosis (polyclonal, มักไม่เกิน 10%) · Lymphoplasmacytic lymphoma',
+  sig:'ร่วมกับ SPEP/IFE (M-protein), serum free light chain, CRAB/SLiM-CRAB; flow: CD38/CD138+, CD19−, CD56+, cytoplasmic light chain monotypic',
+  draw(){ let s=rbcBg(4,RBC_R,[[100,100,88]]); placer(9,23,[],72,4000).forEach((p,i)=>{ const x=p[0],y=p[1],rot=r(0,360); let cl=''; for(let k=0;k<7;k++){ const a=k/7*TAU; cl+=C(Math.cos(a)*6,Math.sin(a)*6,2,'#241046'); }
+      s+=G(x,y,rot,1,E(0,0,22,16,0,'#3E6CB3','#2D548F',0.8)+E(-1,0,6,8,0,'#A9C2E6','none',0,'opacity=".85"')+C(-12,0,10,'#6A4D9E')+cl+(i===4?C(10,4,4,'#E7A7C8','#B85C8F',0.6)+C(12,-5,3,'#E7A7C8','#B85C8F',0.6):'')+(i===2?C(10,0,8,'#6A4D9E'):'')); });
+    return s; } });
+
+add({ id:'l_mpo', en:'MPO stain: myeloblasts positive vs lymphoblasts negative', th:'การย้อม MPO (Myeloperoxidase)', stain:'mpo', size:'—',
+  key:['ผลบวก = แกรนูลสีน้ำตาลดำ (DAB) หรือดำ (SBB) ในไซโทพลาซึม','Myeloblast/promyelocyte/neutrophil บวก; monocyte บวกอ่อน กระจาย','Lymphoblast และ lymphocyte ลบ (ใช้เป็น internal negative control)','Blast บวก ≥ 3% = myeloid lineage'],
+  diff:'AML-M0 และ M7 ให้ผล < 3% · สไลด์เก่า/โดนแสง = ลบปลอม',
+  sig:'ใช้แยก AML vs ALL อย่างรวดเร็วก่อนผล flow cytometry',
+  draw(){ let s=rbcBg(7,RBC_R,[[100,100,60]],{col:'#E7C9B5',pale:'#F3E6DC',pallor:0.3});
+    placer(6,25,[],62,4000).forEach((p,i)=>{ const x=p[0],y=p[1]; s+=cell(x,y,24,'#DCDDE6','',0.04,'#A9ABBE')+C(x-3,y,16,'#8C8FB0');
+      if(i<4){ s+=granules(x,y,22,22,i===0?90:50,0.6,1.3,'#3A2410','.95')+(i===0?L(x+10,y-8,x+16,y+6,'#1E1208',1.6):''); } }); return s; } });
+
+add({ id:'l_nse', en:'Non-specific esterase (NSE) — monocytic positive', th:'การย้อม NSE (Non-specific esterase)', stain:'nse', size:'—',
+  key:['ผลบวก = สีน้ำตาลแดง/ส้มกระจายทั่วไซโทพลาซึม (diffuse)','Monoblast/monocyte บวกเข้ม และ ถูกยับยั้งเมื่อเติม NaF (fluoride)','Granulocyte ลบ (หรือบวกอ่อน)'],
+  diff:'Megakaryoblast อาจบวกแบบเป็นจุดแต่ไม่ถูกยับยั้งด้วย NaF · CAE (specific esterase) บวกใน granulocyte',
+  sig:'ช่วยจัด AML-M4 (NSE ≥ 20%) / M5 (monocytic ≥ 80%)',
+  draw(){ let s=rbcBg(7,RBC_R,[[100,100,60]],{col:'#E2CFC0',pale:'#F2E8E0',pallor:0.3});
+    placer(5,28,[],60,4000).forEach((p,i)=>{ const x=p[0],y=p[1]; const pos=i<3; s+=P(blob(x,y,27,25,0.1,12), pos?grad([[0,'#D98A4A'],[1,'#A8472A']]):'#DCDDE6', pos?'#8A3A20':'#A9ABBE',0.7)+C(x-3,y,15,pos?'#7C6A9C':'#8C8FB0','none',0,'opacity=".85"'); }); return s; } });
+
+add({ id:'l_pas', en:'PAS block positivity in lymphoblasts', th:'การย้อม PAS (block positivity ใน ALL)', stain:'pas', size:'—',
+  key:['สารสีม่วงแดง (magenta) รวมตัวเป็นก้อนหยาบ (block/coarse granules) ในไซโทพลาซึมของ lymphoblast','พื้นไซโทพลาซึมส่วนอื่นไม่ติดสี','Erythroblast ผิดปกติ (M6) บวกแบบกระจายหรือเป็นก้อน'],
+  diff:'Neutrophil ปกติบวกแบบกระจายละเอียด (glycogen) · Megakaryoblast บวกเป็นเม็ด',
+  sig:'สนับสนุน ALL (ไม่จำเพาะ) — ปัจจุบันใช้ flow cytometry ยืนยัน',
+  draw(){ let s=rbcBg(8,RBC_R,[[100,100,60]],{col:'#E6C8CF',pale:'#F4E6E9',pallor:0.3});
+    placer(5,24,[],60,4000).forEach((p,i)=>{ const x=p[0],y=p[1]; s+=cell(x,y,22,'#E4E0EA','',0.04,'#B7B0C6')+C(x,y,17,'#6F6C93'); if(i<4){ for(let k=0;k<ri(2,4);k++){ const a=r(0,TAU); s+=P(blob(x+Math.cos(a)*19,y+Math.sin(a)*19,r(2.4,3.6),r(2,3),0.3,6),'#B01E6E'); } } }); return s; } });
+})();
 /* ---------- UI ของแอตลาส: กริดภาพ, รายละเอียด, โหมดทบทวน/ควิซ ---------- */
 (function(){
 'use strict';
@@ -1316,6 +1431,7 @@ const GROUPS = [
   { id:'bact',  label:'แบคทีเรีย' },
   { id:'fungi', label:'เชื้อรา' },
   { id:'fluid', label:'สารน้ำ/อสุจิ/เซลล์วิทยา' },
+  { id:'leuk',  label:'มะเร็งเม็ดเลือด & Cytochem' },
 ];
 const byId = {}; ITEMS.forEach((it,i)=>{ it._i=i; byId[it.id]=it; });
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
